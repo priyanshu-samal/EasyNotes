@@ -2,7 +2,7 @@
 
 [Project Link](https://destiny-delta.vercel.app/)
 
-![EasyNotes](public/logo/Destiny.png)
+![EasyNotes](public/Screenshot.png)
 
 ## 🎯 Overview
 
