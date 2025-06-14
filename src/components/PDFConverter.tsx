@@ -1,5 +1,4 @@
-
-import React, { useState, memo, lazy, Suspense } from 'react';
+import React, { useState, memo, lazy, Suspense, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -66,6 +65,11 @@ const PDFConverter = () => {
     pagesPerSheet: 1,
     alignment: 'vertical'
   });
+
+  // Auto-scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
 
   const steps = [
     { number: 1, title: 'Upload PDFs', description: 'Upload your colored PDF files' },
