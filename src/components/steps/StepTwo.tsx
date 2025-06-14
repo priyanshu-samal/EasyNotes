@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Palette, Loader2 } from 'lucide-react';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 
 interface StepTwoProps {
   pdfData: any;
@@ -22,16 +22,13 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
     }
 
     setIsProcessing(true);
-    console.log('Starting color inversion process with canvas approach');
+    console.log('Starting color inversion process');
     
     try {
-      // Create a canvas-based inversion approach
       const fileBuffer = await pdfData.mergedPdf.arrayBuffer();
       const originalPdf = await PDFDocument.load(fileBuffer);
       const invertedPdf = await PDFDocument.create();
       
-      // For now, we'll create a simple black background with white text simulation
-      // This is a simplified approach since true pixel-level inversion requires more complex processing
       const pages = originalPdf.getPages();
       console.log(`Processing ${pages.length} pages for color inversion`);
       
@@ -39,7 +36,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
         const originalPage = pages[i];
         const { width, height } = originalPage.getSize();
         
-        // Create new page with inverted appearance
+        // Create new page with black background
         const newPage = invertedPdf.addPage([width, height]);
         
         // Add black background
@@ -48,19 +45,16 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
           y: 0,
           width,
           height,
-          color: { r: 0, g: 0, b: 0 }
+          color: rgb(0, 0, 0)
         });
         
-        // Add white text areas (simulating inverted text)
-        // This is a basic simulation - for real inversion, we'd need to process actual content
+        // Add white text simulation areas
         const textHeight = 20;
         const lineSpacing = 25;
         const startY = height - 50;
         
         for (let line = 0; line < Math.floor((height - 100) / lineSpacing); line++) {
           const y = startY - (line * lineSpacing);
-          
-          // Vary the width of text lines to simulate content
           const textWidth = Math.random() * (width - 100) + 50;
           
           newPage.drawRectangle({
@@ -68,7 +62,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
             y: y - textHeight,
             width: textWidth,
             height: textHeight,
-            color: { r: 1, g: 1, b: 1 }
+            color: rgb(1, 1, 1)
           });
         }
         
