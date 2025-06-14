@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, FileText, Loader2 } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
 import { PDFDocument } from 'pdf-lib';
 
 interface StepThreeProps {
@@ -15,27 +16,82 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
+  const [pagePreviewUrls, setPagePreviewUrls] = useState<string[]>([]);
 
   useEffect(() => {
-    const loadPageCount = async () => {
+    const loadPagesWithPreviews = async () => {
       if (!pdfData.invertedPdf) return;
       
       setIsLoadingPages(true);
       try {
-        const fileBuffer = await pdfData.invertedPdf.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(fileBuffer);
-        const pageCount = pdfDoc.getPageCount();
-        setTotalPages(pageCount);
-        console.log('Loaded PDF with', pageCount, 'pages');
+        const fileUrl = URL.createObjectURL(pdfData.invertedPdf);
+        
+        // Load pdf.js
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        document.head.appendChild(script);
+        
+        script.onload = async () => {
+          try {
+            // @ts-ignore - pdf.js global
+            const pdfjsLib = window.pdfjsLib;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            
+            const pdf = await pdfjsLib.getDocument(fileUrl).promise;
+            const pageCount = pdf.numPages;
+            setTotalPages(pageCount);
+            
+            // Generate preview for each page
+            const previews: string[] = [];
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            if (!ctx) return;
+            
+            for (let pageNum = 1; pageNum <= Math.min(pageCount, 20); pageNum++) { // Limit to first 20 pages for performance
+              const page = await pdf.getPage(pageNum);
+              const viewport = page.getViewport({ scale: 0.3 }); // Small scale for thumbnails
+              
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              
+              await page.render({
+                canvasContext: ctx,
+                viewport: viewport
+              }).promise;
+              
+              const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              previews.push(imageDataUrl);
+            }
+            
+            setPagePreviewUrls(previews);
+            console.log('Generated previews for', previews.length, 'pages');
+            
+            // Clean up
+            URL.revokeObjectURL(fileUrl);
+            document.head.removeChild(script);
+            
+          } catch (error) {
+            console.error('Error generating previews:', error);
+            setTotalPages(12); // Fallback
+          } finally {
+            setIsLoadingPages(false);
+          }
+        };
+        
+        script.onerror = () => {
+          console.error('Failed to load pdf.js');
+          setIsLoadingPages(false);
+        };
+        
       } catch (error) {
         console.error('Error loading PDF:', error);
         setTotalPages(12); // Fallback
-      } finally {
         setIsLoadingPages(false);
       }
     };
 
-    loadPageCount();
+    loadPagesWithPreviews();
   }, [pdfData.invertedPdf]);
 
   const handlePageSelection = (pageNumber: number, checked: boolean) => {
@@ -106,7 +162,7 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="w-8 h-8 animate-spin mr-2" />
-        <span>Loading PDF pages...</span>
+        <span>Loading PDF pages and generating previews...</span>
       </div>
     );
   }
@@ -117,7 +173,7 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Select Pages to Delete</h3>
+            <h3 className="text-lg font-semibold">Review and Select Pages to Delete</h3>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -127,27 +183,37 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
                 {selectedPages.length === totalPages ? 'Deselect All' : 'Select All'}
               </Button>
               <span className="text-sm text-gray-500">
-                {selectedPages.length} of {totalPages} selected
+                {selectedPages.length} of {totalPages} selected for deletion
               </span>
             </div>
           </div>
 
-          {/* Page Grid */}
-          <div className="grid grid-cols-6 gap-3 mb-6">
+          {/* Page Grid with Real Previews */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
               <div
                 key={pageNumber}
-                className={`relative border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                className={`relative border-2 rounded-lg cursor-pointer transition-all ${
                   selectedPages.includes(pageNumber)
                     ? 'border-red-500 bg-red-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => handlePageSelection(pageNumber, !selectedPages.includes(pageNumber))}
               >
-                <div className="aspect-[3/4] bg-white rounded shadow-sm flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-gray-400" />
+                <div className="aspect-[3/4] bg-white rounded shadow-sm overflow-hidden">
+                  {pagePreviewUrls[pageNumber - 1] ? (
+                    <img 
+                      src={pagePreviewUrls[pageNumber - 1]} 
+                      alt={`Page ${pageNumber}`}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">Page {pageNumber}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-center mt-2">
+                <div className="text-center mt-2 p-2">
                   <span className="text-sm font-medium">Page {pageNumber}</span>
                 </div>
                 <div className="absolute top-2 right-2">

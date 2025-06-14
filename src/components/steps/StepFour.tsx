@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { LayoutGrid, AlignLeft, AlignCenter } from 'lucide-react';
+import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor } from 'lucide-react';
 
 interface StepFourProps {
   pdfData: any;
@@ -14,11 +14,13 @@ interface StepFourProps {
 const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
   const [pagesPerSheet, setPagesPerSheet] = useState(1);
   const [alignment, setAlignment] = useState<'vertical' | 'horizontal'>('vertical');
+  const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
   const handleApplyLayout = () => {
     updatePdfData({
       pagesPerSheet,
       alignment,
+      pageOrientation,
       processedPdf: new File(['final'], 'final.pdf', { type: 'application/pdf' })
     });
   };
@@ -36,11 +38,12 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
     
     return (
       <div 
-        className="grid gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-white"
+        className={`grid gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-white ${
+          pageOrientation === 'landscape' ? 'w-80 h-60' : 'w-60 h-80'
+        }`}
         style={{ 
           gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
-          gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
-          aspectRatio: '8.5/11'
+          gridTemplateColumns: `repeat(${layout.cols}, 1fr)`
         }}
       >
         {pages.map((page) => (
@@ -57,6 +60,39 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
 
   return (
     <div className="space-y-6">
+      {/* Page Orientation Selection */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <RotateCw className="w-6 h-6 text-blue-600" />
+            <h3 className="text-lg font-semibold">Page Orientation</h3>
+          </div>
+          
+          <RadioGroup
+            value={pageOrientation}
+            onValueChange={(value) => setPageOrientation(value as 'portrait' | 'landscape')}
+            className="grid grid-cols-2 gap-4"
+          >
+            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+              <RadioGroupItem value="portrait" id="portrait" />
+              <Label htmlFor="portrait" className="flex-1 cursor-pointer">
+                <div className="font-medium">Portrait</div>
+                <div className="text-sm text-gray-500">A4 Portrait (8.5" × 11")</div>
+              </Label>
+              <div className="w-8 h-12 border-2 border-gray-400 rounded bg-white"></div>
+            </div>
+            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+              <RadioGroupItem value="landscape" id="landscape" />
+              <Label htmlFor="landscape" className="flex-1 cursor-pointer">
+                <div className="font-medium">Landscape</div>
+                <div className="text-sm text-gray-500">A4 Landscape (11" × 8.5")</div>
+              </Label>
+              <div className="w-12 h-8 border-2 border-gray-400 rounded bg-white"></div>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
       {/* Pages Per Sheet Selection */}
       <Card>
         <CardContent className="p-6">
@@ -88,13 +124,13 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
         </CardContent>
       </Card>
 
-      {/* Alignment Selection */}
+      {/* Content Alignment Selection */}
       {pagesPerSheet === 2 && (
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <AlignCenter className="w-6 h-6 text-blue-600" />
-              <h3 className="text-lg font-semibold">Page Alignment</h3>
+              <h3 className="text-lg font-semibold">Content Alignment</h3>
             </div>
             
             <RadioGroup
@@ -105,16 +141,24 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
                 <RadioGroupItem value="vertical" id="vertical" />
                 <Label htmlFor="vertical" className="flex-1 cursor-pointer">
-                  <div className="font-medium">Vertical</div>
-                  <div className="text-sm text-gray-500">Pages stacked vertically</div>
+                  <div className="font-medium">Vertical Stack</div>
+                  <div className="text-sm text-gray-500">Pages arranged top to bottom</div>
                 </Label>
+                <div className="flex flex-col gap-1">
+                  <div className="w-6 h-3 border border-gray-400 rounded bg-white"></div>
+                  <div className="w-6 h-3 border border-gray-400 rounded bg-white"></div>
+                </div>
               </div>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
                 <RadioGroupItem value="horizontal" id="horizontal" />
                 <Label htmlFor="horizontal" className="flex-1 cursor-pointer">
-                  <div className="font-medium">Horizontal</div>
-                  <div className="text-sm text-gray-500">Pages side by side</div>
+                  <div className="font-medium">Side by Side</div>
+                  <div className="text-sm text-gray-500">Pages arranged left to right</div>
                 </Label>
+                <div className="flex gap-1">
+                  <div className="w-3 h-6 border border-gray-400 rounded bg-white"></div>
+                  <div className="w-3 h-6 border border-gray-400 rounded bg-white"></div>
+                </div>
               </div>
             </RadioGroup>
           </CardContent>
@@ -124,13 +168,16 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
       {/* Layout Preview */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Layout Preview</h3>
-          <div className="max-w-sm mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <Monitor className="w-6 h-6 text-blue-600" />
+            <h3 className="text-lg font-semibold">Layout Preview</h3>
+          </div>
+          <div className="flex justify-center">
             {getLayoutPreview()}
           </div>
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">
-              Preview shows how {pagesPerSheet} page{pagesPerSheet > 1 ? 's' : ''} will be arranged per sheet
+              Preview shows {pagesPerSheet} page{pagesPerSheet > 1 ? 's' : ''} in {pageOrientation} orientation
             </p>
           </div>
         </CardContent>
