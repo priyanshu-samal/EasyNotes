@@ -14,7 +14,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
-  const [previewMode, setPreviewMode] = useState<'original' | 'inverted'>('original');
+  const [previewMode, setPreviewMode] = useState<'original' | 'inverted'>('inverted');
 
   const handleInvertColors = async () => {
     if (!pdfData.mergedPdf) {
@@ -182,18 +182,18 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               <div className="bg-gray-100 p-2 text-center text-sm font-medium">
                 Original Document (Dark Background)
               </div>
-              <div className="h-80 bg-black p-6 relative">
-                <div className="space-y-3">
-                  <div className="text-lg font-bold text-yellow-400">
+              <div className="h-80 bg-black p-4 relative">
+                <div className="space-y-2">
+                  <div className="text-base font-bold text-yellow-400">
                     1. Higher Order Components
                   </div>
                   <div className="text-xs text-cyan-400 font-medium">
                     🔷 Definition
                   </div>
-                  <div className="text-xs text-white leading-relaxed">
+                  <div className="text-xs text-white leading-relaxed pr-2">
                     A Higher Order Component (HOC) is a function that takes a component and returns a new component.
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1 pt-2">
                     <div className="text-xs text-cyan-400 font-medium">
                       🔷 Code Example
                     </div>
@@ -210,18 +210,18 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               <div className="bg-gray-100 p-2 text-center text-sm font-medium">
                 Inverted Colors (Light Background)
               </div>
-              <div className="h-80 bg-white p-6 relative border-2">
-                <div className="space-y-3">
-                  <div className="text-lg font-bold text-purple-800">
+              <div className="h-80 bg-white p-4 relative border-2">
+                <div className="space-y-2">
+                  <div className="text-base font-bold text-purple-800">
                     1. Higher Order Components
                   </div>
                   <div className="text-xs text-red-600 font-medium">
                     🔷 Definition
                   </div>
-                  <div className="text-xs text-black leading-relaxed">
+                  <div className="text-xs text-black leading-relaxed pr-2">
                     A Higher Order Component (HOC) is a function that takes a component and returns a new component.
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1 pt-2">
                     <div className="text-xs text-red-600 font-medium">
                       🔷 Code Example
                     </div>
