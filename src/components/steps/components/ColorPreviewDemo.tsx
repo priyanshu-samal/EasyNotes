@@ -1,30 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 
-interface ColorPreviewDemoProps {
-  previewMode: 'original' | 'inverted';
-  onPreviewModeChange: (mode: 'original' | 'inverted') => void;
-}
-
-const ColorPreviewDemo: React.FC<ColorPreviewDemoProps> = ({
-  previewMode,
-  onPreviewModeChange
-}) => {
+const ColorPreviewDemo: React.FC = () => {
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <h3 className="text-lg font-semibold">Color Inversion Preview</h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">Original</span>
-            <Switch
-              checked={previewMode === 'inverted'}
-              onCheckedChange={(checked) => onPreviewModeChange(checked ? 'inverted' : 'original')}
-            />
-            <span className="text-sm">Inverted</span>
-          </div>
         </div>
 
         {/* Enhanced Preview */}
