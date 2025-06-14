@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -178,24 +177,31 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
           </div>
 
           {/* Enhanced Preview */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-gray-100 p-2 text-center text-sm font-medium">
                 Original Document (Dark Background)
               </div>
-              <div className="h-64 bg-black p-4 relative">
-                <div className="absolute top-4 left-4 right-4">
-                  <div className="text-xl font-bold text-yellow-400 mb-2">1. Higher Order Components (HOC)</div>
-                  <div className="text-sm text-cyan-400 mb-4">🔷 Definition</div>
+              <div className="h-80 bg-black p-6 relative">
+                <div className="space-y-4">
+                  <div className="text-xl font-bold text-yellow-400">
+                    1. Higher Order Components (HOC)
+                  </div>
+                  <div className="text-sm text-cyan-400 font-medium">
+                    🔷 Definition
+                  </div>
                   <div className="text-sm text-white leading-relaxed">
                     A Higher Order Component (HOC) is a function that takes a component and returns a new component with added behavior.
                   </div>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="text-sm text-cyan-400 mb-2">🔷 Code (Example)</div>
-                  <div className="bg-gray-800 p-2 rounded text-xs">
-                    <span className="text-blue-400">function</span> <span className="text-yellow-300">withLoading</span>
-                    <span className="text-white">(Component) &#123;</span>
+                  <div className="mt-6 space-y-2">
+                    <div className="text-sm text-cyan-400 font-medium">
+                      🔷 Code Example
+                    </div>
+                    <div className="bg-gray-800 p-3 rounded text-xs font-mono">
+                      <div><span className="text-blue-400">function</span> <span className="text-yellow-300">withLoading</span><span className="text-white">(Component) {</span></div>
+                      <div className="ml-2 text-green-300">return EnhancedComponent;</div>
+                      <div><span className="text-white">}</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -205,19 +211,26 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               <div className="bg-gray-100 p-2 text-center text-sm font-medium">
                 Inverted Colors (Light Background)
               </div>
-              <div className="h-64 bg-white p-4 relative border">
-                <div className="absolute top-4 left-4 right-4">
-                  <div className="text-xl font-bold text-purple-800 mb-2">1. Higher Order Components (HOC)</div>
-                  <div className="text-sm text-red-600 mb-4">🔷 Definition</div>
+              <div className="h-80 bg-white p-6 relative border-2">
+                <div className="space-y-4">
+                  <div className="text-xl font-bold text-purple-800">
+                    1. Higher Order Components (HOC)
+                  </div>
+                  <div className="text-sm text-red-600 font-medium">
+                    🔷 Definition
+                  </div>
                   <div className="text-sm text-black leading-relaxed">
                     A Higher Order Component (HOC) is a function that takes a component and returns a new component with added behavior.
                   </div>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="text-sm text-red-600 mb-2">🔷 Code (Example)</div>
-                  <div className="bg-gray-200 p-2 rounded text-xs">
-                    <span className="text-orange-600">function</span> <span className="text-purple-700">withLoading</span>
-                    <span className="text-black">(Component) &#123;</span>
+                  <div className="mt-6 space-y-2">
+                    <div className="text-sm text-red-600 font-medium">
+                      🔷 Code Example
+                    </div>
+                    <div className="bg-gray-200 p-3 rounded text-xs font-mono">
+                      <div><span className="text-orange-600">function</span> <span className="text-purple-700">withLoading</span><span className="text-black">(Component) {</span></div>
+                      <div className="ml-2 text-green-700">return EnhancedComponent;</div>
+                      <div><span className="text-black">}</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
