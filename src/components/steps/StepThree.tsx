@@ -1,9 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, FileText } from 'lucide-react';
+import { Trash2, FileText, Loader2 } from 'lucide-react';
+import { PDFDocument } from 'pdf-lib';
 
 interface StepThreeProps {
   pdfData: any;
@@ -11,8 +11,32 @@ interface StepThreeProps {
 }
 
 const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
-  const [totalPages] = useState(12); // Mock total pages
+  const [totalPages, setTotalPages] = useState(0);
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingPages, setIsLoadingPages] = useState(false);
+
+  useEffect(() => {
+    const loadPageCount = async () => {
+      if (!pdfData.invertedPdf) return;
+      
+      setIsLoadingPages(true);
+      try {
+        const fileBuffer = await pdfData.invertedPdf.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(fileBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setTotalPages(pageCount);
+        console.log('Loaded PDF with', pageCount, 'pages');
+      } catch (error) {
+        console.error('Error loading PDF:', error);
+        setTotalPages(12); // Fallback
+      } finally {
+        setIsLoadingPages(false);
+      }
+    };
+
+    loadPageCount();
+  }, [pdfData.invertedPdf]);
 
   const handlePageSelection = (pageNumber: number, checked: boolean) => {
     if (checked) {
@@ -30,12 +54,62 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
     }
   };
 
-  const handleDeletePages = () => {
-    updatePdfData({ 
-      selectedPages: selectedPages,
-      processedPdf: new File(['processed'], 'processed.pdf', { type: 'application/pdf' })
-    });
+  const handleDeletePages = async () => {
+    if (!pdfData.invertedPdf || selectedPages.length === 0) return;
+
+    setIsProcessing(true);
+    console.log('Deleting pages:', selectedPages);
+    
+    try {
+      const fileBuffer = await pdfData.invertedPdf.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(fileBuffer);
+      
+      // Create new PDF with remaining pages
+      const processedPdf = await PDFDocument.create();
+      const allPages = pdfDoc.getPages();
+      
+      // Get pages to keep (1-indexed to 0-indexed)
+      const pagesToKeep = [];
+      for (let i = 0; i < totalPages; i++) {
+        if (!selectedPages.includes(i + 1)) {
+          pagesToKeep.push(i);
+        }
+      }
+      
+      if (pagesToKeep.length === 0) {
+        alert('Cannot delete all pages. Please keep at least one page.');
+        return;
+      }
+      
+      // Copy remaining pages
+      const copiedPages = await processedPdf.copyPages(pdfDoc, pagesToKeep);
+      copiedPages.forEach((page) => processedPdf.addPage(page));
+      
+      const processedPdfBytes = await processedPdf.save();
+      const processedFile = new File([processedPdfBytes], 'processed-document.pdf', { type: 'application/pdf' });
+      
+      updatePdfData({ 
+        selectedPages: selectedPages,
+        processedPdf: processedFile 
+      });
+      
+      console.log('Pages deleted successfully. Remaining pages:', pagesToKeep.length);
+    } catch (error) {
+      console.error('Error deleting pages:', error);
+      alert('Error processing PDF. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
+  if (isLoadingPages) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-8 h-8 animate-spin mr-2" />
+        <span>Loading PDF pages...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -102,10 +176,17 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
               </div>
               <Button
                 onClick={handleDeletePages}
-                disabled={selectedPages.length === 0}
+                disabled={selectedPages.length === 0 || isProcessing}
                 variant={selectedPages.length > 0 ? "destructive" : "outline"}
               >
-                Delete Selected Pages
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Delete Selected Pages'
+                )}
               </Button>
             </div>
           </div>

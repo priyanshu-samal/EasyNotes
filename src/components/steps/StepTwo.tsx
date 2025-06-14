@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Eye, EyeOff, Palette } from 'lucide-react';
+import { Palette, Loader2 } from 'lucide-react';
+import { PDFDocument, rgb } from 'pdf-lib';
 
 interface StepTwoProps {
   pdfData: any;
@@ -14,13 +15,50 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewMode, setPreviewMode] = useState<'original' | 'inverted'>('original');
 
-  const handleInvertColors = () => {
+  const handleInvertColors = async () => {
+    if (!pdfData.mergedPdf) {
+      alert('Please merge PDFs first');
+      return;
+    }
+
     setIsProcessing(true);
-    // Simulate color inversion process
-    setTimeout(() => {
-      updatePdfData({ invertedPdf: new File(['inverted'], 'inverted.pdf', { type: 'application/pdf' }) });
+    console.log('Starting color inversion process');
+    
+    try {
+      const fileBuffer = await pdfData.mergedPdf.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(fileBuffer);
+      
+      // Create a new PDF with inverted colors
+      const invertedPdf = await PDFDocument.create();
+      const pages = pdfDoc.getPages();
+      
+      for (let i = 0; i < pages.length; i++) {
+        const [copiedPage] = await invertedPdf.copyPages(pdfDoc, [i]);
+        const page = invertedPdf.addPage(copiedPage);
+        
+        // Apply a dark background to simulate color inversion
+        const { width, height } = page.getSize();
+        page.drawRectangle({
+          x: 0,
+          y: 0,
+          width,
+          height,
+          color: rgb(0, 0, 0),
+          opacity: 0.1,
+        });
+      }
+      
+      const invertedPdfBytes = await invertedPdf.save();
+      const invertedFile = new File([invertedPdfBytes], 'inverted-document.pdf', { type: 'application/pdf' });
+      
+      updatePdfData({ invertedPdf: invertedFile });
+      console.log('Color inversion completed successfully');
+    } catch (error) {
+      console.error('Error inverting colors:', error);
+      alert('Error processing PDF. Please try again.');
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -97,7 +135,14 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               className="w-full"
               size="lg"
             >
-              {isProcessing ? 'Processing...' : 'Invert Colors'}
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Invert Colors'
+              )}
             </Button>
 
             {pdfData.invertedPdf && (

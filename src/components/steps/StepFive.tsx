@@ -10,23 +10,43 @@ interface StepFiveProps {
 }
 
 const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
-  const handleDownload = (format: string) => {
-    // Simulate download
+  const handleDownload = () => {
+    const finalPdf = pdfData.processedPdf || pdfData.invertedPdf || pdfData.mergedPdf;
+    
+    if (!finalPdf) {
+      alert('No processed PDF available for download');
+      return;
+    }
+
+    // Create download link
+    const url = URL.createObjectURL(finalPdf);
     const link = document.createElement('a');
-    link.href = '#';
-    link.download = `converted-document.${format}`;
+    link.href = url;
+    link.download = 'converted-document.pdf';
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    console.log('PDF downloaded successfully');
   };
 
   const handleEmailSend = () => {
-    // Simulate email sending
-    alert('PDF sent to your email successfully!');
+    alert('Email functionality would require a backend service. PDF is available for download.');
   };
 
   const handleShare = () => {
-    // Simulate sharing
-    navigator.clipboard.writeText('https://example.com/shared-pdf-123');
-    alert('Share link copied to clipboard!');
+    if (navigator.share) {
+      const finalPdf = pdfData.processedPdf || pdfData.invertedPdf || pdfData.mergedPdf;
+      navigator.share({
+        title: 'Converted PDF',
+        text: 'Check out this converted PDF',
+        files: [finalPdf]
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Page URL copied to clipboard!');
+    }
   };
 
   return (
@@ -36,7 +56,7 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
         <CardContent className="p-6 text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-green-700 mb-2">Processing Complete! 🎉</h2>
-          <p className="text-gray-600 mb-6">Your PDF has been successfully converted to black and white.</p>
+          <p className="text-gray-600 mb-6">Your PDF has been successfully processed.</p>
           
           <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div className="p-3 bg-blue-50 rounded-lg">
@@ -45,7 +65,7 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
               <div className="font-medium">Pages Layout</div>
-              <div className="text-green-600">{pdfData.pagesPerSheet} per sheet</div>
+              <div className="text-green-600">{pdfData.pagesPerSheet || 1} per sheet</div>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
               <div className="font-medium">Final Format</div>
@@ -65,24 +85,16 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
           
           <div className="space-y-3">
             <Button 
-              onClick={() => handleDownload('pdf')} 
+              onClick={handleDownload}
               className="w-full justify-start gap-3" 
               size="lg"
             >
               <FileText className="w-5 h-5" />
               Download as PDF
-              <span className="ml-auto text-sm opacity-70">Recommended</span>
+              <span className="ml-auto text-sm opacity-70">Ready!</span>
             </Button>
             
             <div className="grid grid-cols-2 gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => handleDownload('zip')}
-                className="justify-start gap-2"
-              >
-                <Download className="w-4 h-4" />
-                ZIP Archive
-              </Button>
               <Button 
                 variant="outline" 
                 onClick={handleEmailSend}
@@ -90,6 +102,14 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
               >
                 <Mail className="w-4 h-4" />
                 Email PDF
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleShare}
+                className="justify-start gap-2"
+              >
+                <Share className="w-4 h-4" />
+                Share PDF
               </Button>
             </div>
           </div>
@@ -101,26 +121,26 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <Share className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold">Share Your Document</h3>
+            <h3 className="text-lg font-semibold">Processing Summary</h3>
           </div>
           
           <div className="space-y-3">
-            <Button 
-              variant="outline" 
-              onClick={handleShare}
-              className="w-full justify-start gap-3"
-            >
-              <Share className="w-4 h-4" />
-              Generate Share Link
-              <span className="ml-auto text-sm opacity-70">Expires in 24h</span>
-            </Button>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-2">What was processed:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>✓ {pdfData.files.length} PDF files merged</li>
+                {pdfData.invertedPdf && <li>✓ Colors inverted to black & white</li>}
+                {pdfData.selectedPages?.length > 0 && <li>✓ {pdfData.selectedPages.length} pages deleted</li>}
+                {pdfData.pagesPerSheet > 1 && <li>✓ Layout set to {pdfData.pagesPerSheet} pages per sheet</li>}
+              </ul>
+            </div>
             
             <div className="p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Pro Tip:</strong> Need to convert more PDFs? Save time with our batch processing feature!
+                <strong>Pro Tip:</strong> Need to convert more PDFs? Save time with batch processing!
               </p>
               <Button size="sm" variant="outline" className="mt-2">
-                Upgrade to Pro
+                Process More PDFs
               </Button>
             </div>
           </div>

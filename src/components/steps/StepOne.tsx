@@ -1,8 +1,9 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, X, CheckCircle } from 'lucide-react';
+import { Upload, FileText, X, CheckCircle, Loader2 } from 'lucide-react';
+import { PDFDocument } from 'pdf-lib';
 
 interface StepOneProps {
   pdfData: any;
@@ -10,6 +11,8 @@ interface StepOneProps {
 }
 
 const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const pdfFiles = files.filter(file => file.type === 'application/pdf');
@@ -20,7 +23,7 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
     }
 
     console.log('Files uploaded:', pdfFiles.length);
-    updatePdfData({ files: [...pdfData.files, ...pdfFiles] });
+    updatePdfData({ files: [...pdfData.files, ...pdfFiles], mergedPdf: null });
   }, [pdfData.files, updatePdfData]);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
@@ -38,27 +41,53 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
     }
 
     console.log('Files dropped:', pdfFiles.length);
-    updatePdfData({ files: [...pdfData.files, ...pdfFiles] });
+    updatePdfData({ files: [...pdfData.files, ...pdfFiles], mergedPdf: null });
   }, [pdfData.files, updatePdfData]);
 
   const removeFile = (index: number) => {
     const newFiles = pdfData.files.filter((_: any, i: number) => i !== index);
-    updatePdfData({ files: newFiles, mergedPdf: null }); // Reset merged PDF when files change
+    updatePdfData({ files: newFiles, mergedPdf: null });
     console.log('File removed, remaining files:', newFiles.length);
   };
 
-  const simulateMerge = () => {
-    if (pdfData.files.length > 0) {
-      console.log('Starting merge simulation for', pdfData.files.length, 'files');
-      // Create a proper File object that simulates a merged PDF
-      const mergedBlob = new Blob(['fake merged pdf content'], { type: 'application/pdf' });
-      const mergedFile = new File([mergedBlob], 'merged-document.pdf', { type: 'application/pdf' });
-      
-      // Simulate processing time
-      setTimeout(() => {
+  const mergePDFs = async () => {
+    if (pdfData.files.length === 0) {
+      alert('Please upload at least one PDF file');
+      return;
+    }
+
+    setIsProcessing(true);
+    console.log('Starting PDF merge for', pdfData.files.length, 'files');
+    
+    try {
+      if (pdfData.files.length === 1) {
+        // If only one file, just use it as is
+        const fileBuffer = await pdfData.files[0].arrayBuffer();
+        const mergedFile = new File([fileBuffer], 'merged-document.pdf', { type: 'application/pdf' });
         updatePdfData({ mergedPdf: mergedFile });
-        console.log('Merge completed successfully');
-      }, 1000);
+        console.log('Single file processed successfully');
+      } else {
+        // Merge multiple PDFs
+        const mergedPdf = await PDFDocument.create();
+        
+        for (const file of pdfData.files) {
+          const fileBuffer = await file.arrayBuffer();
+          const pdf = await PDFDocument.load(fileBuffer);
+          const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+          pages.forEach((page) => mergedPdf.addPage(page));
+        }
+        
+        const mergedPdfBytes = await mergedPdf.save();
+        const mergedFile = new File([mergedPdfBytes], 'merged-document.pdf', { type: 'application/pdf' });
+        
+        updatePdfData({ mergedPdf: mergedFile });
+        console.log('PDF merge completed successfully');
+      }
+    } catch (error) {
+      console.error('Error merging PDFs:', error);
+      alert('Error merging PDFs. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -110,6 +139,7 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
                     size="sm"
                     onClick={() => removeFile(index)}
                     className="text-red-500 hover:text-red-700"
+                    disabled={isProcessing}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -122,10 +152,22 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
               {!pdfData.mergedPdf ? (
                 <>
                   <p className="text-sm text-gray-700 mb-2">
-                    <strong>Ready to merge:</strong> Your {pdfData.files.length} PDF files will be combined into a single document.
+                    <strong>Ready to merge:</strong> Your {pdfData.files.length} PDF file{pdfData.files.length > 1 ? 's' : ''} will be combined into a single document.
                   </p>
-                  <Button onClick={simulateMerge} className="bg-gray-800 hover:bg-gray-900" size="sm">
-                    Prepare Merge
+                  <Button 
+                    onClick={mergePDFs} 
+                    className="bg-gray-800 hover:bg-gray-900" 
+                    size="sm"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Merging...
+                      </>
+                    ) : (
+                      'Merge PDFs'
+                    )}
                   </Button>
                 </>
               ) : (
