@@ -14,10 +14,10 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [sizeError, setSizeError] = useState<string>('');
 
-  // Device-aware size limits
+  // Device-aware size limits - increased for better user experience
   const isMobile = window.innerWidth < 768;
-  const MAX_FILE_SIZE = isMobile ? 15 * 1024 * 1024 : 50 * 1024 * 1024; // 15MB mobile, 50MB desktop
-  const MAX_TOTAL_SIZE = isMobile ? 50 * 1024 * 1024 : 200 * 1024 * 1024; // 50MB mobile, 200MB desktop
+  const MAX_FILE_SIZE = isMobile ? 50 * 1024 * 1024 : 100 * 1024 * 1024; // 50MB mobile, 100MB desktop
+  const MAX_TOTAL_SIZE = isMobile ? 150 * 1024 * 1024 : 400 * 1024 * 1024; // 150MB mobile, 400MB desktop
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
