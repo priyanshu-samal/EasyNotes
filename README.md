@@ -334,7 +334,7 @@ Having issues? We're here to help!
 
 **Made with ❤️ for students worldwide**
 
-*Converting your colorful notes into print-friendly PDFs, one click at a time.*
+*Converting your colorful notes into print-friendly PDFs, one click at a time*
 
 [![Deploy to Production](https://img.shields.io/badge/Deploy-Production-green)](https://easynotes.lovable.app)
 [![Version](https://img.shields.io/badge/Version-1.2.0-blue)]()
