@@ -23,7 +23,8 @@ const SizeLimitsInfo: React.FC<SizeLimitsInfoProps> = ({ maxFileSize, maxTotalSi
         <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-1">File Size Limits</p>
-          <p>• Maximum per file: {formatFileSize(maxFileSize)}</p>
+          <p>• Single large PDF: Up to {formatFileSize(maxTotalSize)}</p>
+          <p>• Multiple PDFs: {formatFileSize(maxFileSize)} per file</p>
           <p>• Maximum total: {formatFileSize(maxTotalSize)}</p>
           {isMobile && <p className="text-xs mt-1 text-blue-600">Mobile limits applied for better performance</p>}
         </div>

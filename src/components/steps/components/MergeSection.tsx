@@ -18,12 +18,18 @@ const MergeSection: React.FC<MergeSectionProps> = ({
 }) => {
   if (files.length === 0) return null;
 
+  const isSingleFile = files.length === 1;
+
   return (
     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
       {!mergedPdf ? (
         <>
           <p className="text-sm text-gray-700 mb-2">
-            <strong>Ready to merge:</strong> Your {files.length} PDF file{files.length > 1 ? 's' : ''} will be combined into a single document.
+            {isSingleFile ? (
+              <><strong>Ready to process:</strong> Your PDF file is ready for color inversion.</>
+            ) : (
+              <><strong>Ready to merge:</strong> Your {files.length} PDF files will be combined into a single document.</>
+            )}
           </p>
           <Button 
             onClick={onMergePDFs} 
@@ -34,10 +40,10 @@ const MergeSection: React.FC<MergeSectionProps> = ({
             {isProcessing ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Merging...
+                {isSingleFile ? 'Processing...' : 'Merging...'}
               </>
             ) : (
-              'Merge PDFs'
+              isSingleFile ? 'Process PDF' : 'Merge PDFs'
             )}
           </Button>
         </>
@@ -45,7 +51,7 @@ const MergeSection: React.FC<MergeSectionProps> = ({
         <div className="flex items-center gap-2 text-green-700">
           <CheckCircle className="w-5 h-5" />
           <p className="text-sm">
-            <strong>Merge completed!</strong> Your files are ready for processing. Click Next to continue.
+            <strong>{isSingleFile ? 'PDF processed!' : 'Merge completed!'}</strong> Your file{isSingleFile ? ' is' : 's are'} ready for processing. Click Next to continue.
           </p>
         </div>
       )}

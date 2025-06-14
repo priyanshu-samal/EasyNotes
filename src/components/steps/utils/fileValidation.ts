@@ -13,10 +13,18 @@ export const validateFileSize = (
   maxFileSize: number, 
   maxTotalSize: number
 ): string => {
+  // For single file uploads, allow up to maxTotalSize per file
+  const effectiveMaxFileSize = files.length === 1 && existingFiles.length === 0 
+    ? maxTotalSize 
+    : maxFileSize;
+
   // Check individual file sizes
   for (const file of files) {
-    if (file.size > maxFileSize) {
-      return `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(maxFileSize)}`;
+    if (file.size > effectiveMaxFileSize) {
+      const maxSizeToShow = files.length === 1 && existingFiles.length === 0 
+        ? maxTotalSize 
+        : maxFileSize;
+      return `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(maxSizeToShow)}`;
     }
   }
 
