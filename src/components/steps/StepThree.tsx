@@ -16,6 +16,7 @@ interface StepThreeProps {
 const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
   const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRegeneratingPreviews, setIsRegeneratingPreviews] = useState(false);
   
   const { totalPages, isLoadingPages, pagePreviewUrls } = usePdfPreviews(pdfData.invertedPdf);
 
@@ -66,10 +67,16 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
       const processedPdfBytes = await processedPdf.save();
       const processedFile = new File([processedPdfBytes], 'processed-document.pdf', { type: 'application/pdf' });
       
+      // Update the current PDF to the processed one for new previews
+      setIsRegeneratingPreviews(true);
       updatePdfData({ 
         selectedPages: selectedPages,
-        processedPdf: processedFile 
+        processedPdf: processedFile,
+        invertedPdf: processedFile // Update the current PDF to show new previews
       });
+      
+      // Reset selected pages since we now have a new PDF
+      setSelectedPages([]);
       
       console.log('Pages deleted successfully. Remaining pages:', pagesToKeep.length);
     } catch (error) {
@@ -77,14 +84,23 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
       alert('Error processing PDF. Please try again.');
     } finally {
       setIsProcessing(false);
+      // Give some time for the new PDF to load before stopping the regenerating state
+      setTimeout(() => {
+        setIsRegeneratingPreviews(false);
+      }, 2000);
     }
   };
 
-  if (isLoadingPages) {
+  if (isLoadingPages || isRegeneratingPreviews) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="w-8 h-8 animate-spin mr-2" />
-        <span>Loading all PDF pages and generating previews...</span>
+        <span>
+          {isLoadingPages 
+            ? 'Loading all PDF pages and generating previews...' 
+            : 'Regenerating previews with deleted pages removed...'
+          }
+        </span>
       </div>
     );
   }
