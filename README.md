@@ -1,6 +1,8 @@
 # 📚 EasyNotes - PDF Color Inverter for Students
 
-![EasyNotes Banner](https://via.placeholder.com/800x200/1f2937/ffffff?text=EasyNotes+-+Convert+Your+PDFs+for+Better+Printing)
+[Project Link](https://destiny-delta.vercel.app/)
+
+![EasyNotes](public/logo/Destiny.png)
 
 ## 🎯 Overview
 
