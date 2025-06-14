@@ -92,12 +92,12 @@ const PDFConverter = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">PDF Color Converter</h1>
-          <p className="text-gray-600">Convert your color PDFs to black and white in 5 simple steps</p>
+          <p className="text-gray-700">Convert your color PDFs to black and white in 5 simple steps</p>
         </div>
 
         {/* Progress Bar */}
@@ -108,14 +108,14 @@ const PDFConverter = () => {
               <div
                 key={step.number}
                 className={`flex flex-col items-center ${
-                  currentStep >= step.number ? 'text-blue-600' : 'text-gray-400'
+                  currentStep >= step.number ? 'text-gray-900' : 'text-gray-500'
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${
                     currentStep >= step.number
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      ? 'bg-gray-800 text-white'
+                      : 'bg-gray-300 text-gray-600'
                   }`}
                 >
                   {step.number}
@@ -132,13 +132,13 @@ const PDFConverter = () => {
         <div className="flex gap-6">
           {/* Main Content */}
           <div className="flex-1">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl">
+            <Card className="shadow-lg border-gray-300">
+              <CardHeader className="bg-gray-50 border-b">
+                <CardTitle className="text-2xl text-gray-900">
                   Step {currentStep}: {steps[currentStep - 1].title}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="bg-white">
                 {renderStep()}
               </CardContent>
             </Card>
@@ -149,7 +149,7 @@ const PDFConverter = () => {
                 variant="outline"
                 onClick={handleBack}
                 disabled={currentStep === 1}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-gray-400 text-gray-700 hover:bg-gray-100"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -157,7 +157,7 @@ const PDFConverter = () => {
               <Button
                 onClick={handleNext}
                 disabled={currentStep === 5 || !canProceed()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white"
               >
                 {currentStep === 5 ? 'Complete' : 'Next'}
                 <ChevronRight className="w-4 h-4" />
@@ -167,28 +167,16 @@ const PDFConverter = () => {
 
           {/* Ad Space Sidebar */}
           <div className="w-80 hidden lg:block">
-            <AdBanner 
-              type="sidebar" 
-              title="Premium PDF Tools" 
-              description="Unlock advanced features like batch processing, OCR, and password protection"
-            />
+            <AdBanner type="sidebar" />
             <div className="mt-6">
-              <AdBanner 
-                type="small" 
-                title="Cloud Storage" 
-                description="Save your processed PDFs securely in the cloud"
-              />
+              <AdBanner type="small" />
             </div>
           </div>
         </div>
 
         {/* Footer Ad Space */}
         <div className="mt-8">
-          <AdBanner 
-            type="footer" 
-            title="Sponsored Content" 
-            description="Discover more productivity tools to enhance your workflow"
-          />
+          <AdBanner type="footer" />
         </div>
       </div>
     </div>
