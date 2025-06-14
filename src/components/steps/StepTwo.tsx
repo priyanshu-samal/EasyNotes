@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { Palette, Loader2 } from 'lucide-react';
 
 interface StepTwoProps {
@@ -12,6 +13,8 @@ interface StepTwoProps {
 
 const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState('');
   const [previewMode, setPreviewMode] = useState<'original' | 'inverted'>('original');
 
   const handleInvertColors = async () => {
@@ -21,6 +24,8 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
     }
 
     setIsProcessing(true);
+    setProcessingProgress(0);
+    setProcessingStatus('Initializing PDF processing...');
     console.log('Starting TRUE color inversion process');
     
     try {
@@ -32,6 +37,9 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
         throw new Error('Could not get canvas context');
       }
 
+      setProcessingProgress(10);
+      setProcessingStatus('Loading PDF library...');
+
       // Read the PDF file
       const fileUrl = URL.createObjectURL(pdfData.mergedPdf);
       
@@ -42,18 +50,29 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
       
       script.onload = async () => {
         try {
+          setProcessingProgress(20);
+          setProcessingStatus('Analyzing PDF structure...');
+          
           // @ts-ignore - pdf.js global
           const pdfjsLib = window.pdfjsLib;
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
           
           const pdf = await pdfjsLib.getDocument(fileUrl).promise;
-          console.log(`Processing ${pdf.numPages} pages for TRUE color inversion`);
+          const totalPages = pdf.numPages;
+          console.log(`Processing ${totalPages} pages for TRUE color inversion`);
+          
+          setProcessingProgress(30);
+          setProcessingStatus(`Found ${totalPages} pages to process...`);
           
           // Create a new PDF with inverted colors
           const { PDFDocument, rgb } = await import('pdf-lib');
           const invertedPdf = await PDFDocument.create();
           
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const pageProgress = 30 + ((pageNum - 1) / totalPages) * 60;
+            setProcessingProgress(pageProgress);
+            setProcessingStatus(`Processing page ${pageNum} of ${totalPages}...`);
+            
             const page = await pdf.getPage(pageNum);
             const viewport = page.getViewport({ scale: 2.0 });
             
@@ -93,11 +112,17 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               height: viewport.height,
             });
             
-            console.log(`Processed page ${pageNum}/${pdf.numPages}`);
+            console.log(`Processed page ${pageNum}/${totalPages}`);
           }
+          
+          setProcessingProgress(90);
+          setProcessingStatus('Finalizing PDF...');
           
           const invertedPdfBytes = await invertedPdf.save();
           const invertedFile = new File([invertedPdfBytes], 'inverted-document.pdf', { type: 'application/pdf' });
+          
+          setProcessingProgress(100);
+          setProcessingStatus('Processing complete!');
           
           updatePdfData({ invertedPdf: invertedFile });
           console.log('TRUE color inversion completed successfully');
@@ -110,7 +135,11 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
           console.error('Error in PDF processing:', error);
           alert('Error processing PDF with pdf.js. Please try again.');
         } finally {
-          setIsProcessing(false);
+          setTimeout(() => {
+            setIsProcessing(false);
+            setProcessingProgress(0);
+            setProcessingStatus('');
+          }, 1000);
         }
       };
       
@@ -118,12 +147,16 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
         console.error('Failed to load pdf.js');
         alert('Failed to load PDF processing library. Please check your internet connection.');
         setIsProcessing(false);
+        setProcessingProgress(0);
+        setProcessingStatus('');
       };
       
     } catch (error) {
       console.error('Error inverting colors:', error);
       alert('Error processing PDF. Please try again.');
       setIsProcessing(false);
+      setProcessingProgress(0);
+      setProcessingStatus('');
     }
   };
 
@@ -202,6 +235,17 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
           </div>
           
           <div className="space-y-4">
+            {/* Processing Progress */}
+            {isProcessing && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">{processingStatus}</span>
+                  <span className="text-sm text-gray-500">{Math.round(processingProgress)}%</span>
+                </div>
+                <Progress value={processingProgress} className="h-2" />
+              </div>
+            )}
+
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-medium mb-2 text-blue-800">✨ Real PDF Processing Features</h4>
               <ul className="text-sm text-blue-700 space-y-1">
