@@ -12,11 +12,11 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'PDF Color Converter - Convert Color PDFs to Black & White Online',
+  title = 'EasyNotes - Convert Color PDFs to Black & White Online',
   description = 'Convert your color PDFs to black and white instantly. Free online PDF converter with professional quality results. No registration required.',
   keywords = 'PDF converter, color to black white, PDF tools, online converter, document processing',
   image = '/preview-image.jpg',
-  url = 'https://pdfcolorconverter.com',
+  url = 'https://easynotes.com',
   type = 'website'
 }) => {
   return (
@@ -37,7 +37,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
-      <meta property="og:site_name" content="PDF Color Converter" />
+      <meta property="og:site_name" content="EasyNotes" />
 
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />
@@ -48,7 +48,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="twitter:creator" content="@PriyanshuS92042" />
 
       {/* Additional SEO */}
-      <meta name="theme-color" content="#1f2937" />
+      <meta name="theme-color" content="#000000" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="mobile-web-app-capable" content="yes" />
@@ -58,7 +58,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebApplication",
-          "name": "PDF Color Converter",
+          "name": "EasyNotes",
           "description": description,
           "url": url,
           "creator": {
