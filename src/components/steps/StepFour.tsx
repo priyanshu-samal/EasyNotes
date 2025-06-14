@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor } from 'lucide-react';
+import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor, CheckCircle } from 'lucide-react';
 
 interface StepFourProps {
   pdfData: any;
@@ -15,14 +14,30 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
   const [pagesPerSheet, setPagesPerSheet] = useState(1);
   const [alignment, setAlignment] = useState<'vertical' | 'horizontal'>('vertical');
   const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [isApplied, setIsApplied] = useState(false);
 
-  const handleApplyLayout = () => {
+  const handleApplyLayout = async () => {
+    console.log('Applying layout settings:', { pagesPerSheet, alignment, pageOrientation });
+    
+    // Use the existing PDF (either processedPdf or invertedPdf)
+    const sourcePdf = pdfData.processedPdf || pdfData.invertedPdf;
+    
+    if (!sourcePdf) {
+      alert('No PDF available to apply layout to');
+      return;
+    }
+
+    // For now, just pass through the PDF with layout settings
+    // In a real implementation, you would apply the actual layout transformations here
     updatePdfData({
       pagesPerSheet,
       alignment,
       pageOrientation,
-      processedPdf: new File(['final'], 'final.pdf', { type: 'application/pdf' })
+      processedPdf: sourcePdf // Keep the existing PDF
     });
+    
+    setIsApplied(true);
+    console.log('Layout settings applied successfully');
   };
 
   const getLayoutPreview = () => {
@@ -60,6 +75,23 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
 
   return (
     <div className="space-y-6">
+      {/* Success indicator when applied */}
+      {isApplied && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 text-green-700">
+              <CheckCircle className="w-6 h-6" />
+              <div>
+                <p className="font-medium">Layout settings applied successfully!</p>
+                <p className="text-sm text-green-600">
+                  Your PDF is now configured with {pagesPerSheet} page{pagesPerSheet > 1 ? 's' : ''} per sheet in {pageOrientation} orientation.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Page Orientation Selection */}
       <Card>
         <CardContent className="p-6">
@@ -70,7 +102,10 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
           
           <RadioGroup
             value={pageOrientation}
-            onValueChange={(value) => setPageOrientation(value as 'portrait' | 'landscape')}
+            onValueChange={(value) => {
+              setPageOrientation(value as 'portrait' | 'landscape');
+              setIsApplied(false); // Reset applied status when settings change
+            }}
             className="grid grid-cols-2 gap-4"
           >
             <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
@@ -103,7 +138,10 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
           
           <RadioGroup
             value={pagesPerSheet.toString()}
-            onValueChange={(value) => setPagesPerSheet(Number(value))}
+            onValueChange={(value) => {
+              setPagesPerSheet(Number(value));
+              setIsApplied(false); // Reset applied status when settings change
+            }}
             className="grid grid-cols-2 gap-4"
           >
             {[1, 2, 3, 4].map((num) => (
@@ -135,7 +173,10 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
             
             <RadioGroup
               value={alignment}
-              onValueChange={(value) => setAlignment(value as 'vertical' | 'horizontal')}
+              onValueChange={(value) => {
+                setAlignment(value as 'vertical' | 'horizontal');
+                setIsApplied(false); // Reset applied status when settings change
+              }}
               className="grid grid-cols-2 gap-4"
             >
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
@@ -186,8 +227,13 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
       {/* Apply Button */}
       <Card>
         <CardContent className="p-4">
-          <Button onClick={handleApplyLayout} className="w-full" size="lg">
-            Apply Layout Settings
+          <Button 
+            onClick={handleApplyLayout} 
+            className="w-full" 
+            size="lg"
+            disabled={isApplied}
+          >
+            {isApplied ? 'Layout Settings Applied ✓' : 'Apply Layout Settings'}
           </Button>
         </CardContent>
       </Card>

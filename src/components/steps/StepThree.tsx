@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,14 +40,16 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
             const pageCount = pdf.numPages;
             setTotalPages(pageCount);
             
-            // Generate preview for each page
+            // Generate preview for ALL pages (not just first 20)
             const previews: string[] = [];
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
             if (!ctx) return;
             
-            for (let pageNum = 1; pageNum <= Math.min(pageCount, 20); pageNum++) { // Limit to first 20 pages for performance
+            console.log(`Loading previews for all ${pageCount} pages`);
+            
+            for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
               const page = await pdf.getPage(pageNum);
               const viewport = page.getViewport({ scale: 0.3 }); // Small scale for thumbnails
               
@@ -62,10 +63,15 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
               
               const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
               previews.push(imageDataUrl);
+              
+              // Log progress for every 5 pages
+              if (pageNum % 5 === 0) {
+                console.log(`Generated preview for page ${pageNum}/${pageCount}`);
+              }
             }
             
             setPagePreviewUrls(previews);
-            console.log('Generated previews for', previews.length, 'pages');
+            console.log('Generated previews for all', previews.length, 'pages');
             
             // Clean up
             URL.revokeObjectURL(fileUrl);
@@ -162,7 +168,7 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="w-8 h-8 animate-spin mr-2" />
-        <span>Loading PDF pages and generating previews...</span>
+        <span>Loading all PDF pages and generating previews...</span>
       </div>
     );
   }
@@ -188,8 +194,8 @@ const StepThree: React.FC<StepThreeProps> = ({ pdfData, updatePdfData }) => {
             </div>
           </div>
 
-          {/* Page Grid with Real Previews */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          {/* Page Grid with Real Previews - Show ALL pages */}
+          <div className="grid grid-cols-4 gap-4 mb-6 max-h-96 overflow-y-auto">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
               <div
                 key={pageNumber}

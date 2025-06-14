@@ -10,47 +10,83 @@ interface StepFiveProps {
 }
 
 const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
-  const handleDownload = () => {
-    const finalPdf = pdfData.processedPdf || pdfData.invertedPdf || pdfData.mergedPdf;
+  const handleDownload = async () => {
+    console.log('Download button clicked');
+    
+    // Get the final PDF (prefer processedPdf, fallback to invertedPdf)
+    const finalPdf = pdfData.processedPdf || pdfData.invertedPdf;
     
     if (!finalPdf) {
+      console.error('No PDF available for download');
       alert('No processed PDF available for download');
       return;
     }
 
-    // Create download link
-    const url = URL.createObjectURL(finalPdf);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'converted-document.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log('PDF downloaded successfully');
+    try {
+      console.log('Starting PDF download, file size:', finalPdf.size, 'bytes');
+      
+      // Create a proper blob from the file
+      let blob;
+      if (finalPdf instanceof File) {
+        blob = new Blob([finalPdf], { type: 'application/pdf' });
+      } else {
+        blob = finalPdf;
+      }
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `converted-document-${new Date().getTime()}.pdf`;
+      link.target = '_blank'; // Open in new tab to help with debugging
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the object URL after a short delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 1000);
+      
+      console.log('PDF download initiated successfully');
+    } catch (error) {
+      console.error('Error during PDF download:', error);
+      alert('Error downloading PDF. Please try again.');
+    }
   };
 
   const handleEmailSend = () => {
     alert('Email functionality would require a backend service. PDF is available for download.');
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      const finalPdf = pdfData.processedPdf || pdfData.invertedPdf || pdfData.mergedPdf;
-      navigator.share({
-        title: 'Converted PDF',
-        text: 'Check out this converted PDF',
-        files: [finalPdf]
-      }).catch(console.error);
+  const handleShare = async () => {
+    const finalPdf = pdfData.processedPdf || pdfData.invertedPdf;
+    
+    if (navigator.share && finalPdf) {
+      try {
+        await navigator.share({
+          title: 'Converted PDF',
+          text: 'Check out this converted PDF',
+          files: [finalPdf]
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Fallback to copying URL
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Page URL copied to clipboard!');
+      }
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(window.location.href);
       alert('Page URL copied to clipboard!');
     }
   };
 
   const handleStartOver = () => {
-    window.location.reload();
+    if (confirm('Are you sure you want to start over? This will clear all your current progress.')) {
+      window.location.reload();
+    }
   };
 
   return (
@@ -79,41 +115,45 @@ const StepFive: React.FC<StepFiveProps> = ({ pdfData, updatePdfData }) => {
         </CardContent>
       </Card>
 
-      {/* Enhanced Download Section */}
-      <Card className="border-2 border-green-200 bg-green-50">
-        <CardContent className="p-8">
-          <div className="text-center mb-6">
-            <Download className="w-12 h-12 text-green-600 mx-auto mb-3" />
-            <h3 className="text-2xl font-semibold text-green-800 mb-2">Download Your PDF</h3>
-            <p className="text-green-700">Your converted PDF is ready with inverted colors for better printing</p>
+      {/* Enhanced Download Section - Made more prominent */}
+      <Card className="border-4 border-green-300 bg-gradient-to-br from-green-50 to-green-100 shadow-xl">
+        <CardContent className="p-10">
+          <div className="text-center mb-8">
+            <div className="bg-green-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Download className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-3xl font-bold text-green-800 mb-3">Download Your PDF</h3>
+            <p className="text-green-700 text-lg">Your converted PDF is ready with inverted colors for better printing</p>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Button 
               onClick={handleDownload}
-              className="w-full justify-center gap-3 bg-green-600 hover:bg-green-700 text-white" 
+              className="w-full justify-center gap-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-6 shadow-lg hover:shadow-xl transition-all" 
               size="lg"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-6 h-6" />
               Download Converted PDF
-              <span className="ml-auto px-3 py-1 bg-green-500 rounded-full text-sm">Ready!</span>
+              <span className="ml-auto px-4 py-2 bg-green-500 rounded-full text-sm animate-pulse">Ready!</span>
             </Button>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
                 onClick={handleEmailSend}
-                className="justify-center gap-2 border-green-300 text-green-700 hover:bg-green-100"
+                className="justify-center gap-3 border-2 border-green-400 text-green-700 hover:bg-green-50 py-4"
+                size="lg"
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-5 h-5" />
                 Email PDF
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleShare}
-                className="justify-center gap-2 border-green-300 text-green-700 hover:bg-green-100"
+                className="justify-center gap-3 border-2 border-green-400 text-green-700 hover:bg-green-50 py-4"
+                size="lg"
               >
-                <Share className="w-4 h-4" />
+                <Share className="w-5 h-5" />
                 Share PDF
               </Button>
             </div>
