@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, X, CheckCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, X, CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PDFDocument } from 'pdf-lib';
 
 interface StepOneProps {
@@ -11,19 +12,64 @@ interface StepOneProps {
 
 const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [sizeError, setSizeError] = useState<string>('');
+
+  // Device-aware size limits
+  const isMobile = window.innerWidth < 768;
+  const MAX_FILE_SIZE = isMobile ? 15 * 1024 * 1024 : 50 * 1024 * 1024; // 15MB mobile, 50MB desktop
+  const MAX_TOTAL_SIZE = isMobile ? 50 * 1024 * 1024 : 200 * 1024 * 1024; // 50MB mobile, 200MB desktop
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const validateFileSize = (files: File[]) => {
+    // Check individual file sizes
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        return `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(MAX_FILE_SIZE)}`;
+      }
+    }
+
+    // Check total size including existing files
+    const currentTotalSize = pdfData.files.reduce((sum: number, file: File) => sum + file.size, 0);
+    const newFilesSize = files.reduce((sum, file) => sum + file.size, 0);
+    const totalSize = currentTotalSize + newFilesSize;
+
+    if (totalSize > MAX_TOTAL_SIZE) {
+      return `Total file size would exceed limit (${formatFileSize(totalSize)}). Maximum allowed: ${formatFileSize(MAX_TOTAL_SIZE)}`;
+    }
+
+    return '';
+  };
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const pdfFiles = files.filter(file => file.type === 'application/pdf');
     
+    setSizeError('');
+    
     if (pdfFiles.length !== files.length) {
-      alert('Please select only PDF files');
+      setSizeError('Please select only PDF files');
+      return;
+    }
+
+    const sizeValidationError = validateFileSize(pdfFiles);
+    if (sizeValidationError) {
+      setSizeError(sizeValidationError);
       return;
     }
 
     console.log('Files uploaded:', pdfFiles.length);
     updatePdfData({ files: [...pdfData.files, ...pdfFiles], mergedPdf: null });
-  }, [pdfData.files, updatePdfData]);
+    
+    // Clear the input so same file can be selected again if needed
+    event.target.value = '';
+  }, [pdfData.files, updatePdfData, MAX_FILE_SIZE, MAX_TOTAL_SIZE]);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -34,28 +80,38 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
     const files = Array.from(event.dataTransfer.files);
     const pdfFiles = files.filter(file => file.type === 'application/pdf');
     
+    setSizeError('');
+    
     if (pdfFiles.length !== files.length) {
-      alert('Please select only PDF files');
+      setSizeError('Please select only PDF files');
+      return;
+    }
+
+    const sizeValidationError = validateFileSize(pdfFiles);
+    if (sizeValidationError) {
+      setSizeError(sizeValidationError);
       return;
     }
 
     console.log('Files dropped:', pdfFiles.length);
     updatePdfData({ files: [...pdfData.files, ...pdfFiles], mergedPdf: null });
-  }, [pdfData.files, updatePdfData]);
+  }, [pdfData.files, updatePdfData, MAX_FILE_SIZE, MAX_TOTAL_SIZE]);
 
   const removeFile = (index: number) => {
     const newFiles = pdfData.files.filter((_: any, i: number) => i !== index);
     updatePdfData({ files: newFiles, mergedPdf: null });
+    setSizeError(''); // Clear any size errors when removing files
     console.log('File removed, remaining files:', newFiles.length);
   };
 
   const mergePDFs = async () => {
     if (pdfData.files.length === 0) {
-      alert('Please upload at least one PDF file');
+      setSizeError('Please upload at least one PDF file');
       return;
     }
 
     setIsProcessing(true);
+    setSizeError('');
     console.log('Starting PDF merge for', pdfData.files.length, 'files');
     
     try {
@@ -84,14 +140,38 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
       }
     } catch (error) {
       console.error('Error merging PDFs:', error);
-      alert('Error merging PDFs. Please try again.');
+      setSizeError('Error processing PDFs. Files may be too large or corrupted. Please try smaller files.');
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Calculate current total size
+  const currentTotalSize = pdfData.files.reduce((sum: number, file: File) => sum + file.size, 0);
+
   return (
     <div className="space-y-6">
+      {/* Size Limits Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">File Size Limits</p>
+            <p>• Maximum per file: {formatFileSize(MAX_FILE_SIZE)}</p>
+            <p>• Maximum total: {formatFileSize(MAX_TOTAL_SIZE)}</p>
+            {isMobile && <p className="text-xs mt-1 text-blue-600">Mobile limits applied for better performance</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Error Alert */}
+      {sizeError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{sizeError}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Upload Area */}
       <Card
         className="border-2 border-dashed border-gray-300 hover:border-gray-500 transition-colors cursor-pointer"
@@ -122,7 +202,12 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
       {pdfData.files.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-3 text-gray-900">Uploaded Files ({pdfData.files.length})</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-gray-900">Uploaded Files ({pdfData.files.length})</h3>
+              <div className="text-sm text-gray-600">
+                Total: {formatFileSize(currentTotalSize)} / {formatFileSize(MAX_TOTAL_SIZE)}
+              </div>
+            </div>
             <div className="space-y-2">
               {pdfData.files.map((file: File, index: number) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -130,7 +215,7 @@ const StepOne: React.FC<StepOneProps> = ({ pdfData, updatePdfData }) => {
                     <FileText className="w-5 h-5 text-red-500" />
                     <div>
                       <p className="font-medium text-gray-900">{file.name}</p>
-                      <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
                     </div>
                   </div>
                   <Button
