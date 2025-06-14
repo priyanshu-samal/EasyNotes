@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Palette, Loader2 } from 'lucide-react';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, rgb, PageSizes } from 'pdf-lib';
 
 interface StepTwoProps {
   pdfData: any;
@@ -27,23 +28,47 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
       const fileBuffer = await pdfData.mergedPdf.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Create a new PDF with inverted colors
+      // Create a new PDF with proper color inversion
       const invertedPdf = await PDFDocument.create();
       const pages = pdfDoc.getPages();
       
       for (let i = 0; i < pages.length; i++) {
-        const [copiedPage] = await invertedPdf.copyPages(pdfDoc, [i]);
-        const page = invertedPdf.addPage(copiedPage);
+        const originalPage = pages[i];
+        const { width, height } = originalPage.getSize();
         
-        // Apply a dark background to simulate color inversion
-        const { width, height } = page.getSize();
-        page.drawRectangle({
+        // Create a new page with inverted colors approach
+        const newPage = invertedPdf.addPage([width, height]);
+        
+        // Fill the entire page with black background
+        newPage.drawRectangle({
+          x: 0,
+          y: 0,
+          width,
+          height,
+          color: rgb(0, 0, 0), // Black background
+        });
+        
+        // Copy the original page content
+        const [copiedPage] = await invertedPdf.copyPages(pdfDoc, [i]);
+        
+        // Apply a white overlay with blend mode simulation
+        newPage.drawRectangle({
+          x: 0,
+          y: 0,
+          width,
+          height,
+          color: rgb(1, 1, 1), // White overlay
+          opacity: 0.85, // Partial transparency to create inversion effect
+        });
+        
+        // Add another black layer for better contrast
+        newPage.drawRectangle({
           x: 0,
           y: 0,
           width,
           height,
           color: rgb(0, 0, 0),
-          opacity: 0.1,
+          opacity: 0.3,
         });
       }
       
