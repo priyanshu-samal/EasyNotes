@@ -68,11 +68,11 @@ const PDFConverter = () => {
   });
 
   const steps = [
-    { number: 1, title: 'Upload', description: 'Upload multiple PDFs' },
-    { number: 2, title: 'Convert', description: 'Convert to black & white' },
-    { number: 3, title: 'Edit', description: 'Remove unwanted pages' },
-    { number: 4, title: 'Layout', description: 'Set layout preferences' },
-    { number: 5, title: 'Download', description: 'Get your final PDF' }
+    { number: 1, title: 'Upload PDFs', description: 'Upload your colored PDF files' },
+    { number: 2, title: 'Convert to Grayscale', description: 'Convert PDF to black & white' },
+    { number: 3, title: 'Edit Pages', description: 'Remove unwanted pages' },
+    { number: 4, title: 'Layout Settings', description: 'Set pages per sheet layout' },
+    { number: 5, title: 'Download PDF', description: 'Download your black & white PDF' }
   ];
 
   const handleNext = () => {
@@ -131,10 +131,25 @@ const PDFConverter = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 p-2 sm:p-4">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
+          {/* SEO Optimized Header */}
           <div className="text-center mb-6 sm:mb-8 px-2">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">EasyNotes</h1>
-            <p className="text-sm sm:text-base text-gray-700">Convert your color PDFs to black and white in 5 simple steps</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              Convert PDF to Black and White Online Free
+            </h1>
+            <h2 className="text-lg sm:text-xl text-gray-800 mb-2">
+              EasyNotes - Professional PDF Color Converter Tool
+            </h2>
+            <p className="text-sm sm:text-base text-gray-700 max-w-3xl mx-auto">
+              Transform your colored PDFs to black and white (grayscale) format in 5 simple steps. 
+              Perfect for printing, reducing ink costs, and creating professional documents. 
+              Free online PDF color remover with no registration required.
+            </p>
+            <div className="mt-3 text-xs sm:text-sm text-gray-600">
+              <span className="inline-block bg-gray-200 px-2 py-1 rounded mr-2 mb-1">Free PDF Converter</span>
+              <span className="inline-block bg-gray-200 px-2 py-1 rounded mr-2 mb-1">Grayscale PDF Tool</span>
+              <span className="inline-block bg-gray-200 px-2 py-1 rounded mr-2 mb-1">Black & White PDF</span>
+              <span className="inline-block bg-gray-200 px-2 py-1 rounded mr-2 mb-1">Online PDF Tools</span>
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -162,7 +177,7 @@ const PDFConverter = () => {
                   <Suspense fallback={
                     <div className="flex items-center justify-center p-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                      <span className="ml-2 text-sm sm:text-base">Loading...</span>
+                      <span className="ml-2 text-sm sm:text-base">Converting PDF to black and white...</span>
                     </div>
                   }>
                     {renderStep()}
@@ -177,6 +192,7 @@ const PDFConverter = () => {
                   onClick={handleBack}
                   disabled={currentStep === 1}
                   className="flex items-center gap-2 border-gray-400 text-gray-700 hover:bg-gray-100 px-3 sm:px-4 text-sm sm:text-base"
+                  title="Go back to previous step"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span className="hidden sm:inline">Back</span>
@@ -185,8 +201,11 @@ const PDFConverter = () => {
                   onClick={handleNext}
                   disabled={currentStep === 5 || !canProceed()}
                   className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-3 sm:px-4 text-sm sm:text-base"
+                  title={currentStep === 5 ? 'Complete PDF conversion' : 'Continue to next step'}
                 >
-                  <span className="hidden sm:inline">{currentStep === 5 ? 'Complete' : 'Next'}</span>
+                  <span className="hidden sm:inline">
+                    {currentStep === 5 ? 'Complete Conversion' : 'Continue Converting'}
+                  </span>
                   <span className="sm:hidden">{currentStep === 5 ? 'Done' : 'Next'}</span>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -224,6 +243,31 @@ const PDFConverter = () => {
               adFormat="horizontal"
               className="h-24"
             />
+          </div>
+
+          {/* SEO Content Section */}
+          <div className="mt-8 bg-white rounded-lg shadow-sm p-6 max-w-4xl mx-auto">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Why Convert PDF to Black and White?
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-700">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">💰 Save Printing Costs</h4>
+                <p>Converting colored PDFs to black and white can reduce printing costs by up to 80%. Black and white printing is significantly cheaper than color printing.</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">📖 Better Readability</h4>
+                <p>Grayscale PDFs often provide better contrast and readability when printed, especially for text-heavy documents and study materials.</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">🖨️ Printer Friendly</h4>
+                <p>Black and white PDFs are compatible with all printers and reduce ink consumption, making them perfect for bulk printing.</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">⚡ Fast & Free</h4>
+                <p>Our online PDF color converter works instantly in your browser. No software installation or registration required.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
