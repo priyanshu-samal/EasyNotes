@@ -1,87 +1,101 @@
 
-import React from 'react';
-import { Twitter, Github, Linkedin, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
-
+const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-4 sm:py-6 mt-6 sm:mt-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4">
+    <footer className="bg-gray-50 border-t mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Section */}
-          <div className="text-center sm:text-left">
-            <h3 className="text-base sm:text-lg font-bold mb-2">EasyNotes</h3>
-            <p className="text-gray-400 text-xs sm:text-sm">
-              Fast, secure PDF color conversion. Process unlimited files with professional results.
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">EN</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">EasyNotes</span>
+            </div>
+            <p className="text-gray-600 text-sm">
+              Convert your colorful PDF notes to print-friendly black and white format. 
+              Save money on printing while keeping your notes perfectly readable.
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div className="text-center sm:text-left">
-            <h4 className="font-semibold mb-2 text-sm">Legal</h4>
-            <ul className="space-y-1 text-xs sm:text-sm text-gray-400">
-              <li><a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms" className="hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="/cookies" className="hover:text-white transition-colors">Cookie Policy</a></li>
+          {/* Product Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link to="/" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  PDF Converter
+                </Link>
+              </li>
+              <li>
+                <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Features
+                </a>
+              </li>
+              <li>
+                <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  How It Works
+                </a>
+              </li>
             </ul>
           </div>
 
-          {/* Social Links */}
-          <div className="text-center sm:text-left sm:col-span-2 lg:col-span-1">
-            <h4 className="font-semibold mb-2 text-sm">Connect</h4>
-            <div className="flex justify-center sm:justify-start space-x-3">
-              <a 
-                href="https://x.com/PriyanshuS92042" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors"
-                title="Follow on Twitter"
-              >
-                <Twitter className="w-3 h-3 sm:w-4 sm:h-4" />
-              </a>
-              <a 
-                href="https://github.com/priyanshu-samal" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors"
-                title="View on GitHub"
-              >
-                <Github className="w-3 h-3 sm:w-4 sm:h-4" />
-              </a>
-              <a 
-                href="https://www.linkedin.com/in/priyanshusamal-/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors"
-                title="Connect on LinkedIn"
-              >
-                <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" />
-              </a>
-              <a 
-                href="mailto:samalpriyanshu966@gmail.com" 
-                className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg transition-colors"
-                title="Send email"
-              >
-                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-              </a>
-            </div>
+          {/* Legal Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link to="/privacy" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact & Support */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <a href="mailto:support@easynotes.app" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Contact Us
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  FAQ
+                </a>
+              </li>
+              <li>
+                <a href="#help" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  Help Center
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 pt-3 sm:pt-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm text-gray-400 space-y-2 sm:space-y-0">
-            <p className="text-center sm:text-left">© {currentYear} EasyNotes. All rights reserved.</p>
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              <span className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                SSL Secured
-              </span>
-              <span className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                Auto-Delete Files
+        <div className="border-t pt-8 mt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <p className="text-gray-500 text-sm">
+              © {new Date().getFullYear()} EasyNotes. All rights reserved.
+            </p>
+            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+              <span className="text-gray-500 text-sm">
+                Made for students worldwide
               </span>
             </div>
           </div>
