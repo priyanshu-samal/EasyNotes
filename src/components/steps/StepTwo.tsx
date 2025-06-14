@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { Palette, Loader2 } from 'lucide-react';
+import { Palette, Loader2, CheckCircle } from 'lucide-react';
 
 interface StepTwoProps {
   pdfData: any;
@@ -15,6 +16,14 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
   const [previewMode, setPreviewMode] = useState<'original' | 'inverted'>('inverted');
+  const [colorChoice, setColorChoice] = useState<'original' | 'inverted'>('inverted');
+
+  const handleKeepOriginal = () => {
+    console.log('User chose to keep original colors - no processing needed');
+    setColorChoice('original');
+    // Simply use the merged PDF as the "processed" PDF
+    updatePdfData({ invertedPdf: pdfData.mergedPdf });
+  };
 
   const handleInvertColors = async () => {
     if (!pdfData.mergedPdf) {
@@ -22,6 +31,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
       return;
     }
 
+    setColorChoice('inverted');
     setIsProcessing(true);
     setProcessingProgress(0);
     setProcessingStatus('Initializing PDF processing...');
@@ -242,10 +252,54 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <Palette className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold">TRUE Color Inversion</h3>
+            <h3 className="text-lg font-semibold">Choose Your Processing Option</h3>
           </div>
           
           <div className="space-y-4">
+            {/* Quick Options */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card className="border-2 hover:border-green-300 transition-colors">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-green-700 mb-2">Keep Original Colors</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Skip processing and keep your PDF as-is. Perfect if your PDF already has good contrast.
+                  </p>
+                  <Button
+                    onClick={handleKeepOriginal}
+                    disabled={isProcessing}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    Keep Original (No Processing)
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 hover:border-blue-300 transition-colors">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-blue-700 mb-2">Invert Colors</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Process your PDF to invert colors - dark becomes light, perfect for printing.
+                  </p>
+                  <Button
+                    onClick={handleInvertColors}
+                    disabled={!pdfData.mergedPdf || isProcessing}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    size="sm"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Invert Colors'
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Processing Progress */}
             {isProcessing && (
               <div className="space-y-3">
@@ -257,47 +311,34 @@ const StepTwo: React.FC<StepTwoProps> = ({ pdfData, updatePdfData }) => {
               </div>
             )}
 
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-medium mb-2 text-blue-800">✨ Real PDF Processing Features</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Processes actual PDF content (not fake shapes)</li>
-                <li>• Inverts every pixel: dark becomes light, light becomes dark</li>
-                <li>• Preserves all text, images, and graphics</li>
-                <li>• Maintains readability and layout</li>
-                <li>• Perfect pixel-level color inversion</li>
-              </ul>
-            </div>
-
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium mb-2">How it works:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Renders each PDF page to high-resolution canvas</li>
-                <li>• Inverts RGB values of every pixel (255 - original)</li>
-                <li>• Rebuilds PDF with inverted images</li>
-                <li>• Maintains original quality and layout</li>
-              </ul>
-            </div>
-
-            <Button
-              onClick={handleInvertColors}
-              disabled={!pdfData.mergedPdf || isProcessing}
-              className="w-full"
-              size="lg"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing Real PDF Content...
-                </>
-              ) : (
-                'Invert PDF Colors (True Processing)'
-              )}
-            </Button>
-
+            {/* Success Message */}
             {pdfData.invertedPdf && (
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-green-700 font-medium">✓ TRUE color inversion completed!</p>
-                <p className="text-sm text-green-600 mt-1">Your PDF has been properly inverted with real content processing - all text and images should now be readable!</p>
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <p className="text-green-700 font-medium">
+                    ✓ {colorChoice === 'original' ? 'Original PDF ready!' : 'Color inversion completed!'}
+                  </p>
+                </div>
+                <p className="text-sm text-green-600 mt-1">
+                  {colorChoice === 'original' 
+                    ? 'Your PDF is ready for the next step - no processing was needed!'
+                    : 'Your PDF has been properly inverted with real content processing!'}
+                </p>
+              </div>
+            )}
+
+            {/* Info for True Processing */}
+            {colorChoice === 'inverted' && (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-medium mb-2 text-blue-800">✨ Real PDF Processing Features</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Processes actual PDF content (not fake shapes)</li>
+                  <li>• Inverts every pixel: dark becomes light, light becomes dark</li>
+                  <li>• Preserves all text, images, and graphics</li>
+                  <li>• Maintains readability and layout</li>
+                  <li>• Perfect pixel-level color inversion</li>
+                </ul>
               </div>
             )}
           </div>
