@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor, CheckCircle } from 'lucide-react';
+import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor, CheckCircle, Loader2 } from 'lucide-react';
+import { PDFDocument, PageSizes, degrees } from 'pdf-lib';
 
 interface StepFourProps {
   pdfData: any;
@@ -15,6 +17,7 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
   const [alignment, setAlignment] = useState<'vertical' | 'horizontal'>('vertical');
   const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [isApplied, setIsApplied] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleApplyLayout = async () => {
     console.log('Applying layout settings:', { pagesPerSheet, alignment, pageOrientation });
@@ -27,17 +30,106 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
       return;
     }
 
-    // For now, just pass through the PDF with layout settings
-    // In a real implementation, you would apply the actual layout transformations here
-    updatePdfData({
-      pagesPerSheet,
-      alignment,
-      pageOrientation,
-      processedPdf: sourcePdf // Keep the existing PDF
-    });
-    
-    setIsApplied(true);
-    console.log('Layout settings applied successfully');
+    if (pagesPerSheet === 1 && pageOrientation === 'portrait') {
+      // No transformation needed, just pass through
+      updatePdfData({
+        pagesPerSheet,
+        alignment,
+        pageOrientation,
+        processedPdf: sourcePdf
+      });
+      setIsApplied(true);
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const fileBuffer = await sourcePdf.arrayBuffer();
+      const sourcePdfDoc = await PDFDocument.load(fileBuffer);
+      const newPdfDoc = await PDFDocument.create();
+      
+      const sourcePages = sourcePdfDoc.getPages();
+      console.log('Processing', sourcePages.length, 'pages with layout:', pagesPerSheet, 'per sheet in', pageOrientation);
+
+      // Determine target page size based on orientation
+      const basePageSize = pageOrientation === 'landscape' ? 
+        { width: PageSizes.A4[1], height: PageSizes.A4[0] } : 
+        { width: PageSizes.A4[0], height: PageSizes.A4[1] };
+
+      // Process pages in groups based on pagesPerSheet
+      for (let i = 0; i < sourcePages.length; i += pagesPerSheet) {
+        const newPage = newPdfDoc.addPage([basePageSize.width, basePageSize.height]);
+        
+        // Calculate layout dimensions
+        let rows, cols;
+        if (pagesPerSheet === 1) {
+          rows = 1; cols = 1;
+        } else if (pagesPerSheet === 2) {
+          if (alignment === 'vertical') {
+            rows = 2; cols = 1;
+          } else {
+            rows = 1; cols = 2;
+          }
+        } else if (pagesPerSheet === 3) {
+          rows = 3; cols = 1;
+        } else if (pagesPerSheet === 4) {
+          rows = 2; cols = 2;
+        }
+
+        const cellWidth = basePageSize.width / cols;
+        const cellHeight = basePageSize.height / rows;
+
+        // Place pages in the layout
+        for (let j = 0; j < pagesPerSheet && (i + j) < sourcePages.length; j++) {
+          const sourcePage = sourcePages[i + j];
+          const [embeddedPage] = await newPdfDoc.copyPages(sourcePdfDoc, [i + j]);
+          
+          // Calculate position in grid
+          const row = Math.floor(j / cols);
+          const col = j % cols;
+          
+          // Calculate scale to fit page in cell while maintaining aspect ratio
+          const sourceWidth = sourcePage.getWidth();
+          const sourceHeight = sourcePage.getHeight();
+          const scaleX = cellWidth / sourceWidth;
+          const scaleY = cellHeight / sourceHeight;
+          const scale = Math.min(scaleX, scaleY) * 0.95; // 5% margin
+          
+          // Calculate position to center the page in its cell
+          const scaledWidth = sourceWidth * scale;
+          const scaledHeight = sourceHeight * scale;
+          const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
+          const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
+          
+          // Draw the page
+          newPage.drawPage(embeddedPage, {
+            x: x,
+            y: y,
+            width: scaledWidth,
+            height: scaledHeight,
+          });
+        }
+      }
+
+      const processedPdfBytes = await newPdfDoc.save();
+      const processedFile = new File([processedPdfBytes], 'layout-applied.pdf', { type: 'application/pdf' });
+      
+      updatePdfData({
+        pagesPerSheet,
+        alignment,
+        pageOrientation,
+        processedPdf: processedFile
+      });
+      
+      setIsApplied(true);
+      console.log('Layout settings applied successfully');
+    } catch (error) {
+      console.error('Error applying layout:', error);
+      alert('Error applying layout settings. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const getLayoutPreview = () => {
@@ -231,9 +323,18 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
             onClick={handleApplyLayout} 
             className="w-full" 
             size="lg"
-            disabled={isApplied}
+            disabled={isApplied || isProcessing}
           >
-            {isApplied ? 'Layout Settings Applied ✓' : 'Apply Layout Settings'}
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Applying Layout...
+              </>
+            ) : isApplied ? (
+              'Layout Settings Applied ✓'
+            ) : (
+              'Apply Layout Settings'
+            )}
           </Button>
         </CardContent>
       </Card>
