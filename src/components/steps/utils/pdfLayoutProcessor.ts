@@ -1,5 +1,5 @@
 
-import { PDFDocument, PageSizes } from 'pdf-lib';
+import { PDFDocument, PageSizes, PDFEmbeddedPage } from 'pdf-lib';
 
 export const processPdfLayout = async (
   sourcePdf: File,
@@ -48,12 +48,12 @@ export const processPdfLayout = async (
       pagesToCopy.push(i + j);
     }
     
-    // Copy all pages at once to get embedded pages
-    const embeddedPages = await newPdfDoc.copyPages(sourcePdfDoc, pagesToCopy);
+    // Copy all pages at once to get embedded pages - explicitly type as PDFEmbeddedPage[]
+    const embeddedPages: PDFEmbeddedPage[] = await newPdfDoc.copyPages(sourcePdfDoc, pagesToCopy);
 
     // Place embedded pages in the layout
     for (let j = 0; j < embeddedPages.length; j++) {
-      const embeddedPage = embeddedPages[j];
+      const embeddedPage: PDFEmbeddedPage = embeddedPages[j];
       
       // Calculate position in grid
       const row = Math.floor(j / cols);
@@ -74,7 +74,7 @@ export const processPdfLayout = async (
       const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
       const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
       
-      // Draw the embedded page (embeddedPage is already a PDFEmbeddedPage from copyPages)
+      // Draw the embedded page
       newPage.drawPage(embeddedPage, {
         x: x,
         y: y,
