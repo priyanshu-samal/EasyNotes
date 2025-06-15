@@ -48,12 +48,15 @@ export const processPdfLayout = async (
       pagesToCopy.push(i + j);
     }
     
-    // Copy pages and embed them properly
+    // Copy pages from source document
     const copiedPages = await newPdfDoc.copyPages(sourcePdfDoc, pagesToCopy);
 
-    // Place copied pages in the layout
+    // Embed and place copied pages in the layout
     for (let j = 0; j < copiedPages.length; j++) {
       const copiedPage = copiedPages[j];
+      
+      // Embed the copied page to get PDFEmbeddedPage
+      const embeddedPage = await newPdfDoc.embedPage(copiedPage);
       
       // Calculate position in grid
       const row = Math.floor(j / cols);
@@ -74,8 +77,8 @@ export const processPdfLayout = async (
       const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
       const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
       
-      // Draw the copied page - copyPages returns pages that can be drawn directly
-      newPage.drawPage(copiedPage, {
+      // Draw the embedded page
+      newPage.drawPage(embeddedPage, {
         x: x,
         y: y,
         width: scaledWidth,
