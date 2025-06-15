@@ -1,4 +1,4 @@
-# 📚 EasyNotes - PDF Color Inverter for Students
+# 📚 EasyNotes - PDF Color Inverter for Students.
 
 [Project Link](https://www.easynotes.space/)
 
