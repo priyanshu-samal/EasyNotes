@@ -1,6 +1,6 @@
 # 📚 EasyNotes - PDF Color Inverter for Students.
 
-[Project Link](https://destiny-delta.vercel.app/)
+[Project Link](https://www.easynotes.space/)
 
 ![EasyNotes](public/Screenshot.png)
 
