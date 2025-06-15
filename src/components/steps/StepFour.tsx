@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { LayoutGrid, AlignLeft, AlignCenter, RotateCw, Monitor, CheckCircle, Loader2 } from 'lucide-react';
-import { PDFDocument, PageSizes, degrees } from 'pdf-lib';
+import { PDFDocument, PageSizes } from 'pdf-lib';
 
 interface StepFourProps {
   pdfData: any;
@@ -80,10 +79,20 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
         const cellWidth = basePageSize.width / cols;
         const cellHeight = basePageSize.height / rows;
 
-        // Place pages in the layout
+        // Get the pages we need for this sheet and copy them properly
+        const pagesToCopy = [];
         for (let j = 0; j < pagesPerSheet && (i + j) < sourcePages.length; j++) {
-          const sourcePage = sourcePages[i + j];
-          const [embeddedPage] = await newPdfDoc.copyPages(sourcePdfDoc, [i + j]);
+          pagesToCopy.push(i + j);
+        }
+        
+        // Copy all pages at once to get embedded pages
+        const embeddedPages = await newPdfDoc.copyPages(sourcePdfDoc, pagesToCopy);
+
+        // Place embedded pages in the layout
+        for (let j = 0; j < embeddedPages.length; j++) {
+          const embeddedPage = embeddedPages[j];
+          const sourcePageIndex = i + j;
+          const sourcePage = sourcePages[sourcePageIndex];
           
           // Calculate position in grid
           const row = Math.floor(j / cols);
@@ -102,7 +111,7 @@ const StepFour: React.FC<StepFourProps> = ({ pdfData, updatePdfData }) => {
           const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
           const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
           
-          // Draw the page
+          // Draw the embedded page
           newPage.drawPage(embeddedPage, {
             x: x,
             y: y,
