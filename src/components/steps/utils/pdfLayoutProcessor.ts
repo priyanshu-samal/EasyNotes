@@ -74,7 +74,7 @@ export const processPdfLayout = async (
       const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
       const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
       
-      // Draw the embedded page
+      // Draw the embedded page (embeddedPage is already a PDFEmbeddedPage from copyPages)
       newPage.drawPage(embeddedPage, {
         x: x,
         y: y,
