@@ -48,7 +48,7 @@ export const processPdfLayout = async (
       pagesToCopy.push(i + j);
     }
     
-    // Copy all pages at once - copyPages returns PDFPage[]
+    // Copy pages and embed them properly
     const copiedPages = await newPdfDoc.copyPages(sourcePdfDoc, pagesToCopy);
 
     // Place copied pages in the layout
@@ -74,7 +74,7 @@ export const processPdfLayout = async (
       const x = col * cellWidth + (cellWidth - scaledWidth) / 2;
       const y = basePageSize.height - (row + 1) * cellHeight + (cellHeight - scaledHeight) / 2;
       
-      // Draw the copied page
+      // Draw the copied page - copyPages returns pages that can be drawn directly
       newPage.drawPage(copiedPage, {
         x: x,
         y: y,
