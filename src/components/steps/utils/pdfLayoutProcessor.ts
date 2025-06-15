@@ -59,9 +59,11 @@ export const processPdfLayout = async (
       const row = Math.floor(j / cols);
       const col = j % cols;
       
+      // Get original page dimensions from the source page
+      const originalPage = sourcePages[i + j];
+      const { width: sourceWidth, height: sourceHeight } = originalPage.getSize();
+      
       // Calculate scale to fit page in cell while maintaining aspect ratio
-      const sourceWidth = embeddedPage.width;
-      const sourceHeight = embeddedPage.height;
       const scaleX = cellWidth / sourceWidth;
       const scaleY = cellHeight / sourceHeight;
       const scale = Math.min(scaleX, scaleY) * 0.95; // 5% margin
